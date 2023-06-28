@@ -15,11 +15,11 @@ Peliculas = []
 Grafo = g.Grafo()
 
 def lectura():
-    with open('netflix_titles.csv', newline='', encoding='utf-8') as csvfile: # Archivo
+    with open('database/netflix_titles.csv', newline='', encoding='utf-8') as csvfile: # Archivo
         reader = csv.reader(csvfile)
-        cabecera = next(reader)  # Lee la primera fila del archivo
+        cabecera = next(reader)  
         datos = [fila for fila in reader]
-        for i in range(5000):  # Cantidad
+        for i in range(5000): 
             pelicula = p.Pelicula(i, datos[i][1], datos[i][2], datos[i][3], datos[i][4], datos[i][5], datos[i][6], datos[i][7], datos[i][8], datos[i][9], datos[i][10], datos[i][11])
             Peliculas.append(pelicula)
             Grafo.agregar_nodo(i)
@@ -55,8 +55,6 @@ def iteracionuna(id):
             arreglototal.append(i)
     return arreglototal
 
-# pais
-# generos son arreglos
 def filtrar_peliculas(generos=None, rating=None, tipo=None, pais=None, fecha=None, arreglo=None):
     filtro = []
     for nodo in arreglo:
@@ -77,16 +75,16 @@ def filtrar_peliculas(generos=None, rating=None, tipo=None, pais=None, fecha=Non
             filtro.append(nodo)
     return filtro
 
-def maxtf(valor, arreglo):
+def maxtf(valor, arreglo,cantidad):
     arreglomax = []
     for nodo in arreglo:
         peso = Grafo.obtener_peso_aristas(valor, nodo)
         if peso is not None:
             arreglomax.append(nodo)
     
-    arreglomax.sort(reverse=True)  # Ordenar los nodos en orden descendente
-    return arreglomax[:8]
-     # Obtener los primeros 24 nodos con mayor peso
+    arreglomax.sort(reverse=True)  
+    return arreglomax[:cantidad]
+
 
 
 def pesosentrenodos(arr_ids):
@@ -121,7 +119,6 @@ def bfs_peliculas_sim(pelicula_ini, num_pelis):
 
     while cola and len(pesos) < num_pelis:
         pelicula_actual, distancia = cola.popleft()
-
         if pelicula_actual not in visitados:
             visitados.add(pelicula_actual)
             peli_sig = Grafo.obtener_pel_sig(pelicula_actual)
@@ -355,14 +352,13 @@ anios = [
     '1998', '1992', '1954', '1964', '1996', '2018', '2014', '2008', '1982', '1977', '1975', '1959', '1944', '1980',
     '1990', '2000', '1978', '1968'
 ]
+
 lectura()
 gn=ra=ti=pa=fe=None
 cantidadra=10
 def buscar_peliculas():
     global gn,ra,ti,pa,fe,cantidadra
-    resultado_busqueda.delete(*resultado_busqueda.get_children())  # Limpiar el árbol de resultados de búsqueda
-    
-    # Obtener los valores de los filtros seleccionados
+    resultado_busqueda.delete(*resultado_busqueda.get_children())  
     generos = [entrada_generos.get()] if entrada_generos.get() else None
     rating = entrada_rating.get() if entrada_rating.get() else None
     tipo = entrada_tipo.get() if entrada_tipo.get() else None
@@ -374,17 +370,12 @@ def buscar_peliculas():
     pa=pais
     fe=fecha
 
-    
-    # Filtrar las películas
     peliculas_filtradas = filtrar_peliculas(generos, rating, tipo, pais, fecha, range(5000))
     print(gn,ra,ti,pa,fe,cantidadra)
-    # Obtener la cantidad de elementos a imprimir
     cantidad_impresiones = int(entrada_cantidad.get())
     cantidadra=cantidad_impresiones
-    # Obtener el título parcial
     titulo_parcial = entrada_titulo.get()
     print(gn,ra,ti,pa,fe,cantidadra)
-    # Mostrar los títulos de las películas que coincidan con el título parcial
     contador_impresiones = 0
     for pelicula_id in peliculas_filtradas:
         if contador_impresiones >= cantidad_impresiones:
@@ -396,27 +387,16 @@ def buscar_peliculas():
 
 def obtener_id_seleccionado(event):
     global gn,ra,ti,pa,fe,cantidadra
-    # Obtener el índice seleccionado en el árbol de resultados
     item_seleccionado = resultado_busqueda.focus()
-    
-    # Obtener el valor de la columna de ID en el ítem seleccionado
     id_pelicula = resultado_busqueda.item(item_seleccionado)['values'][0]
-    
-    # Obtener los datos completos de la película
     pelicula = Peliculas[peli(id_pelicula)]
-    
-    # Crear una ventana emergente para mostrar los datos de la película
     ventana_pelicula = tk.Toplevel(ventana)
-    ventana_pelicula.title("Detalles de la Película")
+    ventana_pelicula.title("Movie Details")
+    ventana_pelicula.iconbitmap("img/logo2.ico")
     ventana_pelicula.geometry("700x400")
- 
-    
-    
-    # Agregar más etiquetas para mostrar los datos adicionales de la película
     pelicula = Peliculas[peli(id_pelicula)]
     descripcion_formateada = '\n'.join([pelicula.description[i:i+50] for i in range(0, len(pelicula.description), 50)])
     cast='\n'.join([pelicula.cast_members[i:i+50] for i in range(0, len(pelicula.cast_members), 50)])
-    # Crear una etiqueta para mostrar los valores de la película
     etiqueta_valores = tk.Label(ventana_pelicula, text=f"Valores de la película con ID {peli(id_pelicula)}:\n"
                                                f"ID: {pelicula.showid}\n"
                                                f"Tipo: {pelicula.type}\n"
@@ -432,66 +412,73 @@ def obtener_id_seleccionado(event):
                                                f"Descripción: {descripcion_formateada}",justify="left")
 
     etiqueta_valores.place(x=10,y=10)
-    # Mostrar las películas con mayores pesos
+    # Arreglo de peliculas generales relacionadas
     peliculas_mayor_peso = iteracionuna(peli(id_pelicula))
-    etiqueta_peliculas_mayor_peso = tk.Label(ventana_pelicula, text="")
-    peliculas_filtro=bfs_peliculas_sim(peli(id_pelicula),10)
+    peliculas_filtro=bfs_peliculas_sim(peli(id_pelicula),20)
+    print(peliculas_filtro)
+    variaspeliculas = "" 
     for pelicula_id in peliculas_filtro:
-            etiqueta_pelicula_mayor_peso = tk.Label(ventana_pelicula, text=Peliculas[pelicula_id].title)
-            etiqueta_pelicula_mayor_peso.pack(anchor="e")
-            pass
+        titulo_pelicula = Peliculas[pelicula_id].title
+        variaspeliculas += titulo_pelicula + "\n"
+    etiqueta_peliculas_mayor_peso = tk.Label(ventana_pelicula, text=variaspeliculas,justify="left")
+    etiqueta_peliculas_mayor_peso.place(x=420, y=30)
     titul=tk.Label(ventana_pelicula,text="Peliculas Recomendadas")
     titul.place(x=500,y=10)
     
     
     def dibujar_grafo():
         global peliculas_filtro
+        print(peliculas_filtro)
         pesosentrenodos(peliculas_filtro)
         dibujargrafosa(peliculas_filtro)
         pass
 
     def actualizar():
-        global peliculas_filtro
-        global gn,ra,ti,pa,fe,cantidadra
+        global gn,ra,ti,pa,fe,cantidadra,peliculas_filtro
         contador=0
+        if cantidadra>24:
+            cantidadra=24
         print(gn,ra,ti,pa,fe,cantidadra)
-        peliculas_filtro1=filtrar_peliculas(gn,ra,ti,pa,fe,peliculas_mayor_peso)
-        peliculas_filtro1=maxtf(peli(id_pelicula),peliculas_filtro1)
-        peliculas_filtro=peliculas_filtro1
-        etiqueta_peliculas_mayor_peso.pack_forget()
+        arreglox = iteracionuna(peli(id_pelicula))#
+        peliculas=filtrar_peliculas(gn,ra,ti,pa,fe,arreglox)
+        print(len(peliculas))
+        peliculafiltrado=maxtf(peli(id_pelicula),peliculas,cantidadra)
+        print(len(peliculafiltrado))
         
-        
-        for pelicula_id in peliculas_filtro1:
+        etiqueta_peliculas_mayor_peso.place_forget()
+        variaspeliculas2 =""
+        for pelicula_id in peliculafiltrado:
             if contador >= cantidadra:
                 break
-            etiqueta_pelicula_mayor_peso = tk.Label(ventana_pelicula, text=Peliculas[pelicula_id].title)
-            etiqueta_pelicula_mayor_peso.pack(anchor="e")
+            titulo_pelicula = Peliculas[pelicula_id].title
+            variaspeliculas2 += titulo_pelicula + "\n"
             contador+=1
             pass
-        
-    
-    # Botón para dibujar el grafo
+        peliculas_filtro=peliculafiltrado
+        peliculas_filtro.append(peli(id_pelicula))
+        print(peliculas_filtro)
+        etiqueta_peliculas_mayor_peso.config(text=variaspeliculas2)
+        etiqueta_peliculas_mayor_peso.place(x=420, y=30)
+        boton_dibujar_grafo.place(x=300,y=300)
+
     boton_dibujar_grafo = tk.Button(ventana_pelicula, text="Dibujar Grafo", command=dibujar_grafo)
-    boton_dibujar_grafo.place(x=300,y=300)
+    
     boton_actualizar_grafo=tk.Button(ventana_pelicula, text="Actualizar", command=actualizar)
     boton_actualizar_grafo.place(x=300,y=350)
     ventana_pelicula.mainloop()
 
-
-# Crear la ventana principal
 ventana = tk.Tk()
-ventana.title("Búsqueda de Películas")
+ventana.title("Look4Movie")
+ventana.iconbitmap("img/logo.ico")
 ventana.geometry("700x500")
 
-# Crear el marco principal
 marco_principal = tk.Frame(ventana)
 marco_principal.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-# Crear el marco de los filtros
+
 marco_filtros = tk.Frame(marco_principal)
 marco_filtros.pack(side=tk.RIGHT, padx=10)
 
-# Crear los combobox para los filtros
 etiqueta_generos = tk.Label(marco_filtros, text="Géneros:")
 etiqueta_generos.pack()
 entrada_generos = ttk.Combobox(marco_filtros, values=generos)
@@ -517,50 +504,27 @@ etiqueta_fecha.pack()
 entrada_fecha = ttk.Combobox(marco_filtros, values=anios)
 entrada_fecha.pack(pady=5)
 
-# Crear el campo de entrada para el título parcial
 etiqueta_titulo = tk.Label(marco_filtros, text="Título parcial:")
 etiqueta_titulo.pack()
 entrada_titulo = tk.Entry(marco_filtros)
 entrada_titulo.pack(pady=5)
-
-# Crear el campo de entrada para la cantidad de elementos a imprimir
 def validar_cantidad_ingresada():
-    # Obtener el valor ingresado en el campo de cantidad
     cantidad = entrada_cantidad.get()
-    
-    # Verificar si el valor ingresado no es un número entero
     if not cantidad.isdigit():
-        entrada_cantidad.delete(0, tk.END)  # Limpiar el campo
+        entrada_cantidad.delete(0, tk.END)  
 
-# Crear el campo de cantidad de impresiones
 entrada_cantidad = tk.Entry(ventana)
 entrada_cantidad.pack(pady=10)
 entrada_cantidad.insert(tk.END, "2000")
-
-# Asignar la validación de entrada al evento KeyRelease
 entrada_cantidad.bind("<KeyRelease>", lambda event: validar_cantidad_ingresada())
-
-# Crear el botón de búsqueda
 boton_buscar = ttk.Button(marco_filtros, text="Buscar", command=buscar_peliculas)
 boton_buscar.pack(pady=10)
-
-# Crear el marco de los resultados de búsqueda
 marco_resultados = tk.Frame(marco_principal)
 marco_resultados.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-# Crear el campo de resultados de búsqueda
 etiqueta_resultado = tk.Label(marco_resultados, text="Resultados de Búsqueda:")
 etiqueta_resultado.pack()
 resultado_busqueda = ttk.Treeview(marco_resultados, columns=("ID"), show="headings")
-resultado_busqueda.heading("ID", text="ID")
-
-# Configurar el evento de doble clic en el árbol de resultados
+resultado_busqueda.heading("ID", text="Peliculas")
 resultado_busqueda.bind("<Double-1>", obtener_id_seleccionado)
-
-# Agregar el árbol de resultados al marco
 resultado_busqueda.pack(fill=tk.BOTH, expand=True)
-
-
-
-# Ejecutar el bucle principal de la ventana
 ventana.mainloop()
